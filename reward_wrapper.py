@@ -6,6 +6,23 @@ from locomotion_env import *
 
 class Go2(LocoEnv):
     
+    def _reward_tracking_lin_vel(self):
+        # Tracking of linear velocity commands (xy axes)
+        lin_vel_error = torch.sum(
+            torch.square(
+                self.commands[:, :2] - self.base_lin_vel[:, :2]
+            ),
+            dim=1,
+        )
+        return torch.exp(-lin_vel_error / self.reward_cfg['tracking_sigma'])
+
+    def _reward_tracking_ang_vel(self):
+        # Tracking of angular velocity commands (yaw)
+        ang_vel_error = torch.square(
+            self.commands[:, 2] - self.base_ang_vel[:, 2]
+        )
+        return torch.exp(-ang_vel_error / self.reward_cfg['tracking_sigma'])
+
     def _reward_lin_vel_z(self):
         # Penalize z axis base linear velocity
         return torch.square(self.base_lin_vel[:, 2])
@@ -62,7 +79,7 @@ class Go2(LocoEnv):
 
     def _reward_feet_air_time(self):
         # Reward long steps
-        contact = self.link_contact_forces[:, self.penalized_contact_link_indices, 2] > 1.
+        contact = self.link_contact_forces[:, self.feet_link_indices, 2] > 1.
         contact_filt = torch.logical_or(contact, self.last_contacts) 
         self.last_contacts = contact
         first_contact = (self.feet_air_time > 0.) * contact_filt
