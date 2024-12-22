@@ -31,3 +31,7 @@ We use the same domain randomizations as in this repository in both single and d
 4. Generate a deployable checkpoint
 
     To produce a deployable checkpoint comparable to the provided example in Genesis, additional rewards must be incorporated to regularize motion and minimize torque peaks.
+
+## Acknoledgement
+
+This codebase was inspired [legged_gym](https://github.com/leggedrobotics/legged_gym) and its reward design principles.

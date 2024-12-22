@@ -107,7 +107,7 @@ def get_cfgs():
         # termination
         'termination_if_roll_greater_than': 0.4,
         'termination_if_pitch_greater_than': 0.4,
-        'termination_if_height_lower_than': 0.2,
+        'termination_if_height_lower_than': 0.0,
         # base pose
         'base_init_pos': [0.0, 0.0, 0.42],
         'base_init_quat': [1.0, 0.0, 0.0, 0.0],
@@ -118,7 +118,7 @@ def get_cfgs():
         'episode_length_s': 20.0,
         'resampling_time_s': 4.0,
         'command_type': 'ang_vel_yaw',  # 'ang_vel_yaw' or 'heading'
-        'action_scale': 0.5,
+        'action_scale': 0.25,
         'action_latency': 0.02,
         'clip_actions': 100.0,
         'send_timeouts': True,
@@ -164,17 +164,20 @@ def get_cfgs():
     reward_cfg = {
         'tracking_sigma': 0.25,
         'soft_dof_pos_limit': 0.9,
+        'base_height_target': 0.3,
         'reward_scales': {
             'tracking_lin_vel': 1.0,
             'tracking_ang_vel': 0.5,
             'lin_vel_z': -2.0,
             'ang_vel_xy': -0.05,
-            'orientation': -0.,
-            'torques': -0.00001,
+            'orientation': -10.,
+            'base_height': -50.,
+            'torques': -0.0002,
+            'collision': -1.,
             'dof_vel': -0.,
             'dof_acc': -2.5e-7,
             'feet_air_time': 1.0,
-            'collision': -0.,
+            'collision': -1.,
             'action_rate': -0.01,
         },
     }
@@ -182,7 +185,7 @@ def get_cfgs():
         'num_commands': 4,
         'lin_vel_x_range': [-1.0, 1.0],
         'lin_vel_y_range': [-1.0, 1.0],
-        'ang_vel_range': [-2.0, 2.0],
+        'ang_vel_range': [-1.0, 1.0],
     }
 
     return env_cfg, obs_cfg, reward_cfg, command_cfg

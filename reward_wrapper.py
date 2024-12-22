@@ -53,6 +53,12 @@ class Go2(LocoEnv):
         # Penalize changes in actions
         return torch.sum(torch.square(self.last_actions - self.actions), dim=1)
 
+    def _reward_base_height(self):
+        # Penalize base height away from target
+        base_height = self.base_pos[:, 2]
+        base_height_target = self.reward_cfg['base_height_target']
+        return torch.square(base_height - base_height_target)
+
     def _reward_collision(self):
         # Penalize collisions on selected bodies
         return torch.sum(

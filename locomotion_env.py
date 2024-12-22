@@ -80,6 +80,7 @@ class LocoEnv:
                 dt=sim_dt,
                 constraint_solver=gs.constraint_solver.Newton,
                 enable_collision=True,
+                enable_self_collision=True,
                 enable_joint_limit=True,
             ),
             show_viewer=show_viewer,
@@ -396,6 +397,9 @@ class LocoEnv:
         self.foot_quaternions = torch.ones(
             self.num_envs, len(self.feet_link_indices), 4, device=self.device, dtype=gs.tc_float,
         )
+        self.foot_velocities = torch.ones(
+            self.num_envs, len(self.feet_link_indices), 3, device=self.device, dtype=gs.tc_float,
+        )
 
         self.base_link_index = 1
 
@@ -433,6 +437,7 @@ class LocoEnv:
 
         self.foot_positions[:] = self.rigid_solver.get_links_pos(self.feet_link_indices_world_frame)
         self.foot_quaternions[:] = self.rigid_solver.get_links_quat(self.feet_link_indices_world_frame)
+        self.foot_velocities[:] = self.rigid_solver.get_links_vel(self.feet_link_indices_world_frame)
 
         if self.env_cfg['use_terrain']:
             clipped_base_pos = self.base_pos[:, :2].clamp(min=torch.zeros(2, device=self.device), max=self.terrain_margin)
