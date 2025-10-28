@@ -113,7 +113,10 @@ class Backflip(Go2):
 
         # reset root states - position
         self.base_pos[envs_idx] = self.base_init_pos
-        self.base_pos[envs_idx, 2] = 0.32
+        # allow task-specific reset height override to avoid ground penetration
+        reset_h = self.env_cfg.get('reset_base_height', None)
+        if reset_h is not None:
+            self.base_pos[envs_idx, 2] = reset_h
         self.base_quat[envs_idx] = self.base_init_quat.reshape(1, -1)
         self.robot.set_pos(
             self.base_pos[envs_idx], zero_velocity=False, envs_idx=envs_idx
@@ -261,17 +264,20 @@ class Backflip(Go2):
         return torch.square(self.projected_gravity[:, 1])
 
     def _reward_feet_distance(self):
-        current_time = self.episode_length_buf * self.dt
+        # Support both quadruped (4 feet) and humanoid (2 feet)
         cur_footsteps_translated = self.foot_positions - self.base_pos.unsqueeze(1)
-        footsteps_in_body_frame = torch.zeros(self.num_envs, 4, 3, device=self.device)
-        for i in range(4):
-            footsteps_in_body_frame[:, i, :] = gs_quat_apply(gs_quat_conjugate(self.base_quat),
-                                                                 cur_footsteps_translated[:, i, :])
+        n_feet = cur_footsteps_translated.shape[1]
+        footsteps_in_body_frame = torch.zeros(self.num_envs, n_feet, 3, device=self.device)
+        for i in range(n_feet):
+            footsteps_in_body_frame[:, i, :] = gs_quat_apply(
+                gs_quat_conjugate(self.base_quat), cur_footsteps_translated[:, i, :]
+            )
 
-        stance_width = 0.3 * torch.zeros([self.num_envs, 1,], device=self.device)
-        desired_ys = torch.cat([stance_width / 2, -stance_width / 2, stance_width / 2, -stance_width / 2], dim=1)
+        stance_width = 0.3 * torch.ones([self.num_envs, 1], device=self.device)
+        # pattern +w/2, -w/2 repeated
+        pattern = torch.cat([stance_width / 2, -stance_width / 2], dim=1)
+        desired_ys = pattern.repeat(1, (n_feet + 1) // 2)[:, :n_feet]
         stance_diff = torch.square(desired_ys - footsteps_in_body_frame[:, :, 1]).sum(dim=1)
-        
         return stance_diff
 
     def _reward_feet_height_before_backflip(self):

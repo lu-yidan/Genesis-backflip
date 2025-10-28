@@ -362,12 +362,23 @@ class LocoEnv:
         stiffness = self.env_cfg['PD_stiffness']
         damping = self.env_cfg['PD_damping']
 
+        # Map gains per dof with single match (priority: specific groups, fallback 'joint')
         self.p_gains, self.d_gains = [], []
+        specific_keys = [k for k in stiffness.keys() if k != 'joint']
         for dof_name in self.env_cfg['dof_names']:
-            for key in stiffness.keys():
+            matched = False
+            for key in specific_keys:
                 if key in dof_name:
                     self.p_gains.append(stiffness[key])
-                    self.d_gains.append(damping[key])
+                    self.d_gains.append(damping.get(key, damping.get('joint', 0.0)))
+                    matched = True
+                    break
+            if not matched:
+                if 'joint' in stiffness:
+                    self.p_gains.append(stiffness['joint'])
+                    self.d_gains.append(damping.get('joint', 0.0))
+                else:
+                    raise ValueError(f"No PD gain mapping found for dof '{dof_name}'. Provide 'joint' fallback or a matching group key.")
         self.p_gains = torch.tensor(self.p_gains, device=self.device)
         self.d_gains = torch.tensor(self.d_gains, device=self.device)
         self.batched_p_gains = self.p_gains[None, :].repeat(self.num_envs, 1)
@@ -875,8 +886,11 @@ class LocoEnv:
         # self.scene.draw_debug_spheres(poss=foot_poss, radius=0.03, color=(1, 0, 0, 0.7))
 
         foot_poss = foot_poss.cpu()
-        self.scene.draw_debug_line(foot_poss[0], foot_poss[3], radius=0.002, color=(1, 0, 0, 0.7))
-        self.scene.draw_debug_line(foot_poss[1], foot_poss[2], radius=0.002, color=(1, 0, 0, 0.7))
+        if foot_poss.shape[0] >= 4:
+            self.scene.draw_debug_line(foot_poss[0], foot_poss[3], radius=0.002, color=(1, 0, 0, 0.7))
+            self.scene.draw_debug_line(foot_poss[1], foot_poss[2], radius=0.002, color=(1, 0, 0, 0.7))
+        elif foot_poss.shape[0] == 2:
+            self.scene.draw_debug_line(foot_poss[0], foot_poss[1], radius=0.002, color=(1, 0, 0, 0.7))
 
         com = self.com[0]
         # self.scene.draw_debug_sphere(pos=com, radius=0.1, color=(0, 0, 1, 0.7))
