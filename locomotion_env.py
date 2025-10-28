@@ -123,16 +123,25 @@ class LocoEnv:
             self.env_cfg['base_init_quat'], device=self.device
         )
 
+        # load robot from MJCF XML
         self.robot = self.scene.add_entity(
-            gs.morphs.URDF(
-                file=self.env_cfg['urdf_path'],
-                merge_fixed_links=True,
-                links_to_keep=self.env_cfg['links_to_keep'],
+            gs.morphs.MJCF(
+                file=self.env_cfg['mjcf_xml'],
                 pos=self.base_init_pos.cpu().numpy(),
                 quat=self.base_init_quat.cpu().numpy(),
             ),
             visualize_contact=self.debug,
         )
+        # self.robot = self.scene.add_entity(
+        #     gs.morphs.URDF(
+        #         file=self.env_cfg['urdf_path'],
+        #         merge_fixed_links=True,
+        #         links_to_keep=self.env_cfg['links_to_keep'],
+        #         pos=self.base_init_pos.cpu().numpy(),
+        #         quat=self.base_init_quat.cpu().numpy(),
+        #     ),
+        #     visualize_contact=self.debug,
+        # )
 
         if gs.platform != 'macOS':
             self._set_camera()
