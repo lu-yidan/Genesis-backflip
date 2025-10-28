@@ -8,10 +8,9 @@ We use the same domain randomizations as in this repository in both single and d
 
 ## Demo Video
 
-<video width="640" height="480" controls>
-  <source src="doc/record.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Demo Video](doc/record.gif)
+
+> **Note**: The GIF above shows the backflip demo. For higher quality, you can also [watch the MP4 version](https://github.com/lu-yidan/Genesis-backflip/raw/lu_dev/doc/record.mp4).
 
 ## Requirements
 
