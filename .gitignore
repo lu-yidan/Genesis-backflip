@@ -5,6 +5,9 @@ imgui.ini
 .DS_Store
 sftp-config.json
 *.mp4
+!doc/
+!doc/record.mp4
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
