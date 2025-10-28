@@ -8,6 +8,7 @@ sftp-config.json
 !doc/
 !doc/record.mp4
 !doc/record.gif
+bak/
 
 
 # Byte-compiled / optimized / DLL files
